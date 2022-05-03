@@ -1,0 +1,10 @@
+# Data Retrieval
+# Which Ticker should be the reference for performance?
+REFERENCE_TICKER: BTC
+
+# What is the lowest Percentile you want to see?
+MIN_PERCENTILE: 0
+
+# Program behavior
+# Should the program wait for you to hit enter to exit?
+EXIT_WAIT_FOR_ENTER: true
