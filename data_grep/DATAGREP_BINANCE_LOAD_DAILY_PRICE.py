@@ -11,6 +11,7 @@ import pandas as pd
 import numpy as np
 import PROP.DB
 import urllib3
+import time
 
 from datetime import date, timedelta, datetime
 from decimal import *
@@ -28,7 +29,8 @@ pd.set_option('display.width', 320)
 #############
 ### Variable
 #############
-csv_end_date = date(2022, 5, 1)
+csv_start_date = date.today() - timedelta(days=5)
+csv_end_date = date.today() + timedelta(days=1)
 
 ## sample url : https://data.binance.vision/data/spot/daily/klines/BTCUSDT/5m/BTCUSDT-5m-2022-03-28.zip
 ## get the current directory
@@ -39,7 +41,7 @@ currency = 'USDT'
 timeframe = '1d'
 DIR = os.path.dirname(os.path.realpath(__file__))
 csvfolderpath = os.path.join(DIR, csvfolder)
-print(csvfolderpath)
+
 
 #############
 ### fundction
@@ -60,23 +62,22 @@ def csv_download(csv_download_url, coincurrency, csv_start_date):
     for single_date in daterange(csv_start_date, csv_end_date):
         csv_download_full_url = csv_download_url + str(single_date.strftime("%Y-%m-%d")) + ".zip"
         csv_download_file_path = os.path.join(csvfolderpath, coincurrency + '-' + coincurrency + '-' + single_date.strftime("%Y-%m-%d") + ".zip")
-        csvfile = requests.get(csv_download_full_url)
+        csvfile = requests.get(csv_download_full_url , proxies = proxies)
         with open(csv_download_file_path, 'wb') as output:
             output.write(csvfile.content)
-
-        if os.path.getsize(csv_download_file_path) == 330:
-            os.remove(csv_download_file_path)
-
 
 
 def unzip_file():
     for item in os.listdir(csvfolderpath):
         if item.endswith(".zip"):
-            file_name = csvfolderpath + "\\" + item
-            zip_ref = zipfile.ZipFile(file_name)
-            zip_ref.extractall(csvfolderpath)
-            zip_ref.close()
-            os.remove(file_name)
+            try:
+                file_name = csvfolderpath + "\\" + item
+                zip_ref = zipfile.ZipFile(file_name)
+                zip_ref.extractall(csvfolderpath)
+                zip_ref.close()
+                os.remove(file_name)
+            except zipfile.BadZipFile :
+                os.remove(file_name)
 
 
 def load_all_csv_to_dataframe():
@@ -97,19 +98,17 @@ def GetCryptoList():
     CryptoDateList = []
     if connection.is_connected():
         cursor = connection.cursor()
-        cursor.execute("select symbol, start_date from crypto_info where source = 'binance' and active_flag;")
+        cursor.execute("select symbol from crypto_info where source = 'binance' and active_flag = 1;")
         Crypto = cursor.fetchall()
         cursor.close()
         for row in Crypto:
             CryptoList.append(row[0])
-            CryptoDateList.append(row[1])
-        return (CryptoList, CryptoDateList)
+        return (CryptoList)
 
 
 def deleteAllFile():
     os.chdir(csvfolderpath)
     all_files = os.listdir()
-
     for f in all_files:
         os.remove(f)
 
@@ -117,22 +116,12 @@ def deleteAllFile():
 def InsertCryptoPrice(symbol, currency, update_date, open_price, high_price, low_price, close_price, volume, source):
     connection = PROP.DB.DB_CRYPTO()
     cursor = connection.cursor()
-    sql = "REPLACE INTO crypto_daily_price (symbol, currency, update_date, open, high, low, close, volume, source) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) "
+    sql = "REPLACE INTO crypto_daily_price (symbol, currency, update_date, open_price, high_price, low_price, close_price, volume, source) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) "
     val = (symbol, currency, update_date, open_price, high_price, low_price, close_price, volume, source)
     cursor.execute(sql, val)
     connection.commit()
     cursor.close()
     connection.close()
-
-def UpdHistFlag(symbol):
-    connection = PROP.DB.DB_CRYPTO()
-    cursor = connection.cursor()
-    sql = "UPDATE crypto_info set historical_flag = 1 where symbol =  '" + symbol + "';"
-    cursor.execute(sql)
-    connection.commit()
-    cursor.close()
-    connection.close()
-
 
 ## main
 
@@ -141,9 +130,8 @@ def UpdHistFlag(symbol):
 #############
 
 print("Data Preparation")
-
 create_csvfolder()
-CryptoList, CryptoDateList = GetCryptoList()
+CryptoList = GetCryptoList()
 i = 0
 for x in CryptoList:
     print(x)
@@ -151,7 +139,7 @@ for x in CryptoList:
     coin = x
     coin_currency = x + currency
     csv_download_url = 'https://data.binance.vision/data/spot/daily/klines/' + coin_currency + '/' + timeframe + '/' + coin_currency + '-' + timeframe + '-'
-    csv_download(csv_download_url, coin_currency, CryptoDateList[i])
+    csv_download(csv_download_url, coin_currency, csv_start_date)
     unzip_file()
     data_set = load_all_csv_to_dataframe()
     data_set = data_set.assign(symbol=coin)
@@ -169,5 +157,4 @@ for x in CryptoList:
         source = data_set.iloc[y, 9]
         InsertCryptoPrice(symbol, currency, update_date, open_price, high_price, low_price, close_price, volume, source)
     deleteAllFile()
-    UpdHistFlag(coin)
     i = i + 1

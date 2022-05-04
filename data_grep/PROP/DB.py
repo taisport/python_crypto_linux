@@ -8,7 +8,7 @@ Created on Mon Jan 28 09:52:59 2019
 import mysql.connector
 from mysql.connector import Error
 
-Hostname = 'PASSION.ZAPTO.ORG'
+Hostname = 'WTWONG-ADD-2'
 
 def DB_PERSONAL():
     connection = mysql.connector.connect(host=Hostname, user="personal",passwd="24349179", database="personal", charset='utf8mb4')
