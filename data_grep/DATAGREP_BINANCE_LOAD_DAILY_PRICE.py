@@ -152,3 +152,4 @@ for x in CryptoList:
         InsertCryptoPrice(symbol, currency, update_date, open_price, high_price, low_price, close_price, volume, source)
     deleteAllFile()
     i = i + 1
+    time.sleep(1)

@@ -100,7 +100,7 @@ def GetCryptoList():
     CoingeckoCryptoList = []
     if connection.is_connected():
         cursor = connection.cursor()
-        cursor.execute("select symbol, start_date, coingecko_coinid from crypto_info where source = 'Coingecko' and historical_flag= 0 ;")
+        cursor.execute("select symbol, start_date, coingecko_coinid from crypto_info where source = 'Coingecko' and symbol = 'VERI' ;")
         Crypto = cursor.fetchall()
         cursor.close()
         for row in Crypto:

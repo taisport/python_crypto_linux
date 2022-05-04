@@ -97,7 +97,7 @@ def GetCryptoList():
     CryptoDateList = []
     if connection.is_connected():
         cursor = connection.cursor()
-        cursor.execute("select symbol, start_date from crypto_info where source = 'binance' and active_flag;")
+        cursor.execute("select symbol, start_date from crypto_info where source = 'Binance' ;")
         Crypto = cursor.fetchall()
         cursor.close()
         for row in Crypto:

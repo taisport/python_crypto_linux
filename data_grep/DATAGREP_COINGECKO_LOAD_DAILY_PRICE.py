@@ -29,11 +29,6 @@ pd.set_option('display.width', 320)
 #############
 csv_end_date = date(2022, 5, 1)
 
-proxies = {
-   'http': 'http://wtwong:czmHa$6191$@10.35.236.13:8080',
-   'https': 'http://wtwong:czmHa$6191$@10.35.236.13:8080',
-}
-
 
 ## sample url : https://data.binance.vision/data/spot/daily/klines/BTCUSDT/5m/BTCUSDT-5m-2022-03-28.zip
 ## get the current directory
@@ -134,7 +129,7 @@ def InsertCryptoPrice(symbol, currency, update_date,  close_price, source):
 def fetch_price_usd_daily_all(coin_id: str = 'solana') -> Optional[pd.DataFrame]:
     url = 'https://api.coingecko.com/api/v3/coins/'+ coin_id + \
         '/market_chart?vs_currency=usd&days=5&interval=daily'
-    response = requests.get(url, proxies=proxies)
+    response = requests.get(url)
     data_dict = response.json()
     price_list = data_dict.get('prices')
     if price_list is None:
@@ -177,3 +172,4 @@ for x in CryptoList:
         source = data_set.iloc[y, 4]
         InsertCryptoPrice(symbol, currency, update_date, close_price, source)
     i = i + 1
+    time.sleep(1)

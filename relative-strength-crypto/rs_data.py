@@ -61,7 +61,8 @@ def get_tickers_from_crypto_info(tickers):
     sql = """SELECT symbol, category as sector, category as industry 
              FROM crypto_info 
              WHERE active_flag = 1 
-             AND symbol != 'BTC' """
+             AND symbol != 'BTC' 
+             AND category != 'Stablecoin' """
     df = pd.read_sql(sql, connection)
     secs = {}
     for index, row in df.iterrows():
