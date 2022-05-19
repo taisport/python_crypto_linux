@@ -6,6 +6,7 @@ from rs_data import cfg, read_json
 from functools import reduce
 from sqlalchemy import create_engine
 import time
+import PROP.DB
 DIR = os.path.dirname(os.path.realpath(__file__))
 
 pd.set_option('display.max_rows', None)
@@ -43,6 +44,18 @@ TITLE_RS = "Relative Strength"
 
 if not os.path.exists('output'):
     os.makedirs('output')
+
+def del_today_rec():
+    connection = PROP.DB.DB_CRYPTO()
+    CryptoList = []
+    CryptoDateList = []
+    if connection.is_connected():
+        cursor = connection.cursor()
+        cursor.execute("delete from crypto_rs_rating where update_date = curdate()")
+        connection.commit()
+        cursor.close()
+        connection.close()
+
 
 def relative_strength(closes: pd.Series, closes_ref: pd.Series):
     rs_stock = strength(closes)
@@ -184,6 +197,7 @@ def rankings():
         columns={'Rank': 'rank', 'Ticker': 'code', 'Sector': 'sector', 'Industry': 'industry', 'Relative Strength': 'relative_strength',
                  'Percentile': 'rs', '1 Month Ago': 'rs1m', '3 Months Ago': 'rs3m', '6 Months Ago': 'rs6m'}, inplace=True)
     df = df.drop(['Universe'], axis = 1)
+    del_today_rec()
     df.to_sql(name="crypto_rs_rating", con=con, if_exists='append', index=False)
     # df_industries.rename(
     #     columns={'Rank': 'rank', 'Tickers': 'code', 'Sector': 'sector', 'Industry': 'industry',

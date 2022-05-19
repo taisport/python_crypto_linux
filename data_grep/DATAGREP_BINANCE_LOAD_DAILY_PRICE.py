@@ -23,7 +23,7 @@ pd.set_option('display.width', 320)
 #############
 ### Variable
 #############
-csv_start_date = date.today() - timedelta(days=5)
+csv_start_date = date.today() - timedelta(days=3)
 csv_end_date = date.today() + timedelta(days=1)
 
 ## sample url : https://data.binance.vision/data/spot/daily/klines/BTCUSDT/5m/BTCUSDT-5m-2022-03-28.zip
@@ -65,7 +65,7 @@ def unzip_file():
     for item in os.listdir(csvfolderpath):
         if item.endswith(".zip"):
             try:
-                file_name = csvfolderpath + "\\" + item
+                file_name = os.path.join(csvfolderpath , item)
                 zip_ref = zipfile.ZipFile(file_name)
                 zip_ref.extractall(csvfolderpath)
                 zip_ref.close()

@@ -98,7 +98,7 @@ def GetCryptoList():
     CoingeckoCryptoList = []
     if connection.is_connected():
         cursor = connection.cursor()
-        cursor.execute("select symbol, start_date, coingecko_coinid from crypto_info where source = 'Coingecko';")
+        cursor.execute("select symbol, start_date, coingecko_coinid from crypto_info where source = 'Coingecko' and active_flag = 1;")
         Crypto = cursor.fetchall()
         cursor.close()
         for row in Crypto:
@@ -128,7 +128,7 @@ def InsertCryptoPrice(symbol, currency, update_date,  close_price, source):
 
 def fetch_price_usd_daily_all(coin_id: str = 'solana') -> Optional[pd.DataFrame]:
     url = 'https://api.coingecko.com/api/v3/coins/'+ coin_id + \
-        '/market_chart?vs_currency=usd&days=5&interval=daily'
+        '/market_chart?vs_currency=usd&days=3&interval=daily'
     response = requests.get(url)
     data_dict = response.json()
     price_list = data_dict.get('prices')
